@@ -12,5 +12,21 @@ router.post(
   body("name").isString().withMessage("Name is required"),
   projectController.createProject
 );
+// router.get("/all", (req, res) => {
+//   res.send("Projects endpoint is working!");
+// });
+router.get("/all", authMiddleware.authUser, projectController.getAllProjects);
+
+router.put(
+  "/add-user",
+  authMiddleware.authUser,
+
+  body("projectId").isString().withMessage("Project ID is required"),
+  body("users")
+    .isArray({ min: 1 })
+    .withMessage("Users must be an array of strings")
+    .custom((users) => users.every((user) => typeof user === "string")),
+  projectController.addUserToProject
+);
 
 export default router;

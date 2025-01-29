@@ -60,3 +60,19 @@ export const logoutUserController = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getAllUsersController = async (req, res) => {
+  try {
+    const loggedInUser = await userModel.findOne({
+      email: req.user.email,
+    });
+
+    const users = await userModel.find({
+      _id: { $ne: loggedInUser._id },
+    });
+
+    return res.status(200).json({ users });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
