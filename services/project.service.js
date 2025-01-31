@@ -95,3 +95,21 @@ export const addUserToProject = async ({ projectId, users, userId }) => {
     throw new Error(`Failed to add user to project: ${error.message}`);
   }
 };
+
+export const getProjectById = async ({ projectId }) => {
+  if (!projectId) {
+    throw new Error("Project ID is required");
+  }
+
+  try {
+    const project = await projectModel
+      .findOne({
+        _id: projectId,
+      })
+      .populate("users");
+    return project;
+  } catch (error) {
+    console.error("Error getting project by ID:", error);
+    throw new Error(`Failed to get project by ID: ${error.message}`);
+  }
+};
