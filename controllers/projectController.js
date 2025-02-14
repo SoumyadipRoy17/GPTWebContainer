@@ -122,7 +122,7 @@ export const getProjectById = async (req, res) => {
       return res.status(404).json({ error: "Project not found" });
     }
 
-    return res.status(200).json(project);
+    return res.status(200).json({ project });
   } catch (error) {
     console.error("Error in getProjectById controller:", error);
     res.status(400).json({ error: error.message });
