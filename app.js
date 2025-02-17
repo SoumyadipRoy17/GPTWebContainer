@@ -3,6 +3,7 @@ import morgan from "morgan";
 import connect from "./db/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 connect();
@@ -18,6 +19,7 @@ app.use(cookieParser());
 //user routes
 app.use("/users", userRoutes);
 app.use("/projects", projectRoutes);
+app.use("/ai", aiRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running....");

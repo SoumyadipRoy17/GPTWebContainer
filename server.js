@@ -1,11 +1,11 @@
-import "dotenv/config.js";
-
-import { Server } from "socket.io";
+import "dotenv/config";
 import http from "http";
 import app from "./app.js";
+import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import projectModel from "./models/projectModel.js";
+import { generateResult } from "./services/ai.service.js";
 
 const port = process.env.PORT || 3000;
 
@@ -15,58 +15,74 @@ const io = new Server(server, {
     origin: "*",
   },
 });
+
 io.use(async (socket, next) => {
-  console.log("Handshake Auth:", socket.handshake.auth);
-  console.log("Handshake Headers:", socket.handshake.headers);
-
-  const token =
-    socket.handshake.auth?.token ||
-    socket.handshake.headers.authorization?.split(" ")[1];
-
-  const projectId = socket.handshake.query.projectId;
-
-  if (!mongoose.Types.ObjectId.isValid(projectId)) {
-    return next(new Error("Invalid Project"));
-  }
-
-  socket.project = await projectModel.findById(projectId);
-
-  if (!token) {
-    console.log("No token, rejecting...");
-    return next(new Error("Authentication error"));
-  }
-
   try {
+    const token =
+      socket.handshake.auth?.token ||
+      socket.handshake.headers.authorization?.split(" ")[1];
+    const projectId = socket.handshake.query.projectId;
+
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      return next(new Error("Invalid projectId"));
+    }
+
+    socket.project = await projectModel.findById(projectId);
+
+    if (!token) {
+      return next(new Error("Authentication error"));
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decoded) {
+      return next(new Error("Authentication error"));
+    }
+
     socket.user = decoded;
+
     next();
   } catch (error) {
-    console.error("JWT verification failed:", error.message);
-    return next(new Error("Authentication error"));
+    next(error);
   }
 });
 
 io.on("connection", (socket) => {
-  console.log("a user connected");
-
   socket.roomId = socket.project._id.toString();
+
+  console.log("a user connected");
 
   socket.join(socket.roomId);
 
-  socket.on("project-message", (data) => {
-    console.log("Data:", data);
-    socket.to(socket.roomId).emit("project-message", data);
+  socket.on("project-message", async (data) => {
+    const message = data.message;
+
+    const aiIsPresentInMessage = message.includes("@ai");
+    socket.broadcast.to(socket.roomId).emit("project-message", data);
+
+    if (aiIsPresentInMessage) {
+      const prompt = message.replace("@ai", "");
+
+      const result = await generateResult(prompt);
+
+      io.to(socket.roomId).emit("project-message", {
+        message: result,
+        sender: {
+          _id: "ai",
+          email: "AI",
+        },
+      });
+
+      return;
+    }
   });
 
-  socket.on("event", (data) => {
-    /* _ */
-  });
   socket.on("disconnect", () => {
     console.log("user disconnected");
     socket.leave(socket.roomId);
   });
 });
 
-server.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
