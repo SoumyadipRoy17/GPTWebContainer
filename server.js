@@ -15,6 +15,7 @@ const io = new Server(server, {
     origin: [
       "http://localhost:5173",
       "https://gptwebcontainerfrontend2.onrender.com",
+      "https://gptwebcontainerfrontend3.onrender.com",
     ],
     methods: ["GET", "POST"],
     credentials: true,
