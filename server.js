@@ -22,6 +22,7 @@ const io = new Server(server, {
 });
 
 app.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
