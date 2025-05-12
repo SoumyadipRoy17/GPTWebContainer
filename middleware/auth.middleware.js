@@ -16,25 +16,27 @@ export const authUser = async (req, res, next) => {
         .json({ error: "Unauthorized user. Please authenticate" });
     }
 
-    const redisTimeout = (client, key, timeout = 3000) => {
-      return new Promise((resolve, reject) => {
-        const timer = setTimeout(
-          () => reject(new Error("Redis timeout")),
-          timeout
-        );
-        client
-          .get(key)
-          .then((result) => {
-            clearTimeout(timer);
-            resolve(result);
-          })
-          .catch((err) => {
-            clearTimeout(timer);
-            reject(err);
-          });
-      });
-    };
-    const isLoggedOut = await redisTimeout(redisClient, token);
+    console.log("Token received:", token);
+
+    // const redisTimeout = (client, key, timeout = 3000) => {
+    //   return new Promise((resolve, reject) => {
+    //     const timer = setTimeout(
+    //       () => reject(new Error("Redis timeout")),
+    //       timeout
+    //     );
+    //     client
+    //       .get(key)
+    //       .then((result) => {
+    //         clearTimeout(timer);
+    //         resolve(result);
+    //       })
+    //       .catch((err) => {
+    //         clearTimeout(timer);
+    //         reject(err);
+    //       });
+    //   });
+    // };
+    // const isLoggedOut = await redisTimeout(redisClient, token);
 
     // Check if token is logged out in Redis
     // const isLoggedOut = await redisClient.get(token);
@@ -51,12 +53,13 @@ export const authUser = async (req, res, next) => {
 
     // Verify token and attach user to request
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded token:", decoded);
     req.user = decoded;
 
     next();
   } catch (error) {
     return res
-      .status(402)
+      .status(401)
       .json({ error: "Invalid or expired token. Please authenticate again." });
   }
 };
