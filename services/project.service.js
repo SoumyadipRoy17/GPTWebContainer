@@ -38,6 +38,8 @@ export const createProject = async ({ name, userId }) => {
 };
 
 export const getAllProjectsByUserId = async ({ userId }) => {
+  console.log("🔍 Getting projects for user:", userId);
+
   if (!userId) {
     throw new Error("User ID is required");
   }

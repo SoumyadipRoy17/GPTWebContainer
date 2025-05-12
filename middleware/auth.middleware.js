@@ -16,18 +16,38 @@ export const authUser = async (req, res, next) => {
         .json({ error: "Unauthorized user. Please authenticate" });
     }
 
-    // Check if token is logged out in Redis
-    const isLoggedOut = await redisClient.get(token);
-    if (isLoggedOut) {
-      res.cookie("token", "", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "Strict",
+    const redisTimeout = (client, key, timeout = 3000) => {
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error("Redis timeout")),
+          timeout
+        );
+        client
+          .get(key)
+          .then((result) => {
+            clearTimeout(timer);
+            resolve(result);
+          })
+          .catch((err) => {
+            clearTimeout(timer);
+            reject(err);
+          });
       });
-      return res
-        .status(401)
-        .json({ error: "User is logged out. Please log in again." });
-    }
+    };
+    const isLoggedOut = await redisTimeout(redisClient, token);
+
+    // Check if token is logged out in Redis
+    // const isLoggedOut = await redisClient.get(token);
+    // if (isLoggedOut) {
+    //   res.cookie("token", "", {
+    //     httpOnly: true,
+    //     secure: true,
+    //     sameSite: "Strict",
+    //   });
+    //   return res
+    //     .status(401)
+    //     .json({ error: "User is logged out. Please log in again." });
+    // }
 
     // Verify token and attach user to request
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
