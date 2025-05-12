@@ -55,8 +55,6 @@ export const logoutUserController = async (req, res) => {
   try {
     const token = req.cookies.token || req.headers.authorization.split(" ")[1];
     // await redisClient.set(token, "logged out", "EX", 60 * 60 * 24);
-    localStorage.removeItem("token"); // Clear the token from storage
-    // Clear cookie
     res.clearCookie("token", {
       httpOnly: true,
       secure: true,
