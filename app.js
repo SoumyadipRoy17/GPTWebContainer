@@ -12,7 +12,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://webcontainerfrontend.netlify.app",
+    origin: "*",
   })
 );
 app.use(morgan("dev"));
