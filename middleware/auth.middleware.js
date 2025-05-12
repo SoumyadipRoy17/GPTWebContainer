@@ -56,7 +56,7 @@ export const authUser = async (req, res, next) => {
     next();
   } catch (error) {
     return res
-      .status(401)
+      .status(402)
       .json({ error: "Invalid or expired token. Please authenticate again." });
   }
 };
