@@ -54,7 +54,14 @@ export const userProfileController = async (req, res) => {
 export const logoutUserController = async (req, res) => {
   try {
     const token = req.cookies.token || req.headers.authorization.split(" ")[1];
-    await redisClient.set(token, "logged out", "EX", 60 * 60 * 24);
+    // await redisClient.set(token, "logged out", "EX", 60 * 60 * 24);
+    localStorage.removeItem("token"); // Clear the token from storage
+    // Clear cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
     res.status(200).json({ message: "User logged out" });
   } catch (error) {
     res.status(500).json({ error: error.message });
